@@ -1,0 +1,290 @@
+//caesar cipher
+
+def caesar_encrypt(plaintext, shift):
+    ciphertext = ""
+    for char in plaintext:
+        if char.isalpha():
+            shift_amount = shift % 26
+            if char.islower():
+                shifted = ord(char) + shift_amount
+                if shifted > ord('z'):
+                    shifted -= 26
+                ciphertext += chr(shifted)
+            elif char.isupper():
+                shifted = ord(char) + shift_amount
+                if shifted > ord('Z'):
+                    shifted -= 26
+                ciphertext += chr(shifted)
+        else:
+            ciphertext += char
+    return ciphertext
+
+def caesar_decrypt(ciphertext, shift):
+    plaintext = ""
+    for char in ciphertext:
+        if char.isalpha():
+            shift_amount = shift % 26
+            if char.islower():
+                shifted = ord(char) - shift_amount
+                if shifted < ord('a'):
+                    shifted += 26
+                plaintext += chr(shifted)
+            elif char.isupper():
+                shifted = ord(char) - shift_amount
+                if shifted < ord('A'):
+                    shifted += 26
+                plaintext += chr(shifted)
+        else:
+            plaintext += char
+    return plaintext
+
+# Example usage:
+plaintext = "Hello, World!"
+shift = 3
+encrypted_text = caesar_encrypt(plaintext, shift)
+print("Encrypted:", encrypted_text)
+
+decrypted_text = caesar_decrypt(encrypted_text, shift)
+print("Decrypted:", decrypted_text)
+
+
+
+
+// mono-alphabetic
+
+
+
+def generate_key(shift):
+    alphabet = "abcdefghijklmnopqrstuvwxyz"
+    shifted_alphabet = alphabet[shift:] + alphabet[:shift]
+    return {alphabet[i]: shifted_alphabet[i] for i in range(26)}
+
+def monoalphabetic_encrypt(plaintext, key):
+    encrypted_text = ""
+    for char in plaintext:
+        if char.isalpha():
+            if char.islower():
+                encrypted_text += key[char]
+            else:
+                encrypted_text += key[char.lower()].upper()
+        else:
+            encrypted_text += char
+    return encrypted_text
+
+def monoalphabetic_decrypt(ciphertext, key):
+    decrypted_text = ""
+    reversed_key = {v: k for k, v in key.items()}
+    for char in ciphertext:
+        if char.isalpha():
+            if char.islower():
+                decrypted_text += reversed_key[char]
+            else:
+                decrypted_text += reversed_key[char.lower()].upper()
+        else:
+            decrypted_text += char
+    return decrypted_text
+
+# Example usage:
+plaintext = "Hello, World!"
+shift = 3
+key = generate_key(shift)
+
+encrypted_text = monoalphabetic_encrypt(plaintext, key)
+print("Encrypted:", encrypted_text)
+
+decrypted_text = monoalphabetic_decrypt(encrypted_text, key)
+print("Decrypted:", decrypted_text)
+
+
+
+
+// hill cipher
+
+
+
+
+import numpy as np
+
+# Function to generate the key matrix
+def generate_key(key_str, matrix_size):
+    key_matrix = np.zeros((matrix_size, matrix_size), dtype=int)
+    index = 0
+    for i in range(matrix_size):
+        for j in range(matrix_size):
+            key_matrix[i][j] = ord(key_str[index]) % 65
+            index += 1
+    return key_matrix
+
+# Function to generate the inverse of a matrix modulo 26
+def mod_inv(matrix):
+    determinant = int(round(np.linalg.det(matrix)))
+    inverse_determinant = pow(determinant, -1, 26)
+    adjugate = np.round(np.linalg.inv(matrix) * determinant).astype(int)
+    inverse_matrix = (adjugate * inverse_determinant) % 26
+    return inverse_matrix
+
+# Function to encrypt a message
+def hill_encrypt(plaintext, key_str, matrix_size):
+    key_matrix = generate_key(key_str, matrix_size)
+    plaintext = plaintext.upper().replace(" ", "")
+    while len(plaintext) % matrix_size != 0:
+        plaintext += 'X'
+    ciphertext = ""
+    for i in range(0, len(plaintext), matrix_size):
+        block = np.array([ord(char) % 65 for char in plaintext[i:i+matrix_size]])
+        encrypted_block = np.dot(block, key_matrix) % 26
+        ciphertext += ''.join(chr(char + 65) for char in encrypted_block)
+    return ciphertext
+
+# Function to decrypt a message
+def hill_decrypt(ciphertext, key_str, matrix_size):
+    key_matrix = generate_key(key_str, matrix_size)
+    inverse_matrix = mod_inv(key_matrix)
+    decrypted_text = ""
+    for i in range(0, len(ciphertext), matrix_size):
+        block = np.array([ord(char) % 65 for char in ciphertext[i:i+matrix_size]])
+        decrypted_block = np.dot(block, inverse_matrix) % 26
+        decrypted_text += ''.join(chr(char + 65) for char in decrypted_block)
+    return decrypted_text
+
+# Example usage:
+plaintext = "HELLO"
+key = "GYBNQKURP"
+matrix_size = 3
+
+encrypted_text = hill_encrypt(plaintext, key, matrix_size)
+print("Encrypted:", encrypted_text)
+
+decrypted_text = hill_decrypt(encrypted_text, key, matrix_size)
+print("Decrypted:", decrypted_text)
+
+
+
+// POLY-alphabetic
+
+
+def vigenere_encrypt(plaintext, key):
+    plaintext = plaintext.upper()
+    key = key.upper()
+    ciphertext = ""
+    key_index = 0
+    for char in plaintext:
+        if char.isalpha():
+            shift = ord(key[key_index]) - 65
+            encrypted_char = chr(((ord(char) - 65 + shift) % 26) + 65)
+            ciphertext += encrypted_char
+            key_index = (key_index + 1) % len(key)
+        else:
+            ciphertext += char
+    return ciphertext
+
+def vigenere_decrypt(ciphertext, key):
+    ciphertext = ciphertext.upper()
+    key = key.upper()
+    plaintext = ""
+    key_index = 0
+    for char in ciphertext:
+        if char.isalpha():
+            shift = ord(key[key_index]) - 65
+            decrypted_char = chr(((ord(char) - 65 - shift) % 26) + 65)
+            plaintext += decrypted_char
+            key_index = (key_index + 1) % len(key)
+        else:
+            plaintext += char
+    return plaintext
+
+# Example usage:
+plaintext = "HELLO"
+key = "KEY"
+
+encrypted_text = vigenere_encrypt(plaintext, key)
+print("Encrypted:", encrypted_text)
+
+decrypted_text = vigenere_decrypt(encrypted_text, key)
+print("Decrypted:", decrypted_text)
+
+
+
+// playfair cipher
+
+
+def prepare_text(text):
+    text = text.upper().replace(" ", "")
+    # Replace 'J' with 'I' since Playfair doesn't include 'J'
+    text = text.replace("J", "I")
+    # Insert 'X' between repeated letters and at the end if the length is odd
+    text = [text[i] if text[i] != text[i + 1] else text[i] + 'X' for i in range(len(text) - 1)] + [text[-1]]
+    if len(text) % 2 != 0:
+        text.append('X')
+    return text
+
+def generate_key_square(key):
+    key = key.upper().replace("J", "I")
+    key = "".join(sorted(set(key), key=key.index))
+    key_square = [[0]*5 for _ in range(5)]
+    alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ"  # Without 'J'
+    index = 0
+    for row in range(5):
+        for col in range(5):
+            if index < len(key):
+                key_square[row][col] = key[index]
+                index += 1
+            else:
+                while alphabet[index] in key:
+                    index += 1
+                key_square[row][col] = alphabet[index]
+                index += 1
+    return key_square
+
+def find_char(char, key_square):
+    for row in range(5):
+        for col in range(5):
+            if key_square[row][col] == char:
+                return row, col
+
+def playfair_encrypt(plaintext, key):
+    plaintext = prepare_text(plaintext)
+    key_square = generate_key_square(key)
+    ciphertext = ""
+    for i in range(0, len(plaintext), 2):
+        char1 = plaintext[i]
+        char2 = plaintext[i + 1]
+        row1, col1 = find_char(char1, key_square)
+        row2, col2 = find_char(char2, key_square)
+        if row1 == row2:
+            ciphertext += key_square[row1][(col1 + 1) % 5] + key_square[row2][(col2 + 1) % 5]
+        elif col1 == col2:
+            ciphertext += key_square[(row1 + 1) % 5][col1] + key_square[(row2 + 1) % 5][col2]
+        else:
+            ciphertext += key_square[row1][col2] + key_square[row2][col1]
+    return ciphertext
+
+def playfair_decrypt(ciphertext, key):
+    ciphertext = prepare_text(ciphertext)
+    key_square = generate_key_square(key)
+    plaintext = ""
+    for i in range(0, len(ciphertext), 2):
+        char1 = ciphertext[i]
+        char2 = ciphertext[i + 1]
+        row1, col1 = find_char(char1, key_square)
+        row2, col2 = find_char(char2, key_square)
+        if row1 == row2:
+            plaintext += key_square[row1][(col1 - 1) % 5] + key_square[row2][(col2 - 1) % 5]
+        elif col1 == col2:
+            plaintext += key_square[(row1 - 1) % 5][col1] + key_square[(row2 - 1) % 5][col2]
+        else:
+            plaintext += key_square[row1][col2] + key_square[row2][col1]
+    return plaintext
+
+# Example usage:
+plaintext = "HELLO"
+key = "KEYWORD"
+
+encrypted_text = playfair_encrypt(plaintext, key)
+print("Encrypted:", encrypted_text)
+
+decrypted_text = playfair_decrypt(encrypted_text, key)
+print("Decrypted:", decrypted_text)
+
+
+
